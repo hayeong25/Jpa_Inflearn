@@ -1,0 +1,76 @@
+plugins {
+	id 'java'
+	id("org.springframework.boot") version "3.3.4"
+	id("io.spring.dependency-management") version "1.1.6"
+}
+
+group = "com.study"
+version = "0.0.1-SNAPSHOT"
+
+java {
+	sourceCompatibility = '17'
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// HTML 변경 시 서버 재시작 없이 View 변경 가능
+	implementation 'org.springframework.boot:spring-boot-devtools:3.3.4'
+
+	// JPA 설정
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	// QueryDSL 설정
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+	annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+	annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+
+	// Thymeleaf 설정
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+	// Spring Web 설정
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	
+	// Validation 설정
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// Lombok 설정
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// H2 DB 설정
+	runtimeOnly 'com.h2database:h2'
+
+	// 쿼리 파라미터 로그 남기기
+	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
+	
+	// Test 설정
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.assertj:assertj-core:3.26.3'
+}
+
+def querydslDir = layout.buildDirectory.dir("generated/querydsl").get().asFile
+
+sourceSets {
+	main.java.srcDirs += [ querydslDir ]
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.getGeneratedSourceOutputDirectory().set(file(querydslDir))
+}
+
+clean.doLast {
+	file(querydslDir).deleteDir()
+}
+
+
+clean {
+	delete file('src/main/generated')
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
